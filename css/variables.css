@@ -1,0 +1,76 @@
+/* =========================================================
+   DESIGN TOKENS — Revisi 1: Glossy Deep Space Blue
+   ========================================================= */
+:root {
+  /* Deep Space Palette (Diambil dari nuansa nebula biru gelap) */
+  --bg-void: #020614;
+  --bg-deep-navy: #06122e;
+  --bg-elevated: #081533;
+
+  /* Liquid Glass Surfaces */
+  --glass-bg: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.075) 0%,
+    rgba(16, 36, 82, 0.28) 55%,
+    rgba(6, 15, 38, 0.52) 100%
+  );
+  --glass-bg-hover: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.11) 0%,
+    rgba(24, 54, 120, 0.36) 55%,
+    rgba(9, 22, 54, 0.62) 100%
+  );
+  --glass-border: rgba(147, 197, 253, 0.15);
+  --glass-border-top: rgba(255, 255, 255, 0.24);
+  --glass-border-hover: rgba(125, 211, 252, 0.42);
+  --glass-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+
+  /* Luminous Cosmic Accents */
+  --accent-sapphire: #2563eb;
+  --accent-sky: #60a5fa;
+  --accent-ice: #93c5fd;
+  --accent-glow: rgba(59, 130, 246, 0.35);
+
+  /* Typography Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #a8bbd8;
+  --text-muted: #6b81a6;
+
+  /* Fonts */
+  --font-heading: "Outfit", system-ui, -apple-system, sans-serif;
+  --font-body: "Manrope", system-ui, -apple-system, sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+
+  /* Fluid Type Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.3rem;
+  --text-2xl: clamp(1.85rem, 3.2vw, 2.55rem);
+  --text-hero: clamp(2.75rem, 6.5vw, 4.75rem);
+
+  /* Spacing */
+  --container-max: 1080px;
+  --nav-height: 84px;
+  --section-py: clamp(5rem, 9vw, 7.5rem);
+
+  /* Radius & Smooth Motion */
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 200ms var(--ease-out);
+  --transition-base: 380ms var(--ease-out);
+
+  /* Correct Layering (Memperbaiki bug bintang tertutup!) */
+  --z-nebula: 0;
+  --z-stars: 1;
+  --z-content: 2;
+  --z-nav: 100;
+  --z-modal: 200;
+  --z-toast: 300;
+}
