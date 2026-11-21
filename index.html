@@ -39,17 +39,31 @@
       <a href="#hero" class="navbar__brand" id="nav-brand" translate="no">fahri.</a>
 
       <nav class="navbar__menu" id="nav-menu" aria-label="Main navigation">
-        <a href="#about" class="navbar__link">About</a>
-        <a href="#journey" class="navbar__link">Journey</a>
-        <a href="#projects" class="navbar__link">Projects</a>
-        <a href="#achievements" class="navbar__link" id="nav-achievements-link">Awards</a>
-        <a href="#contact" class="navbar__link navbar__cta">Contact</a>
+        <a href="#about" class="navbar__link" data-i18n="nav.about">About</a>
+        <a href="#journey" class="navbar__link" data-i18n="nav.journey">Journey</a>
+        <a href="#projects" class="navbar__link" data-i18n="nav.projects">Projects</a>
+        <a href="#achievements" class="navbar__link" id="nav-achievements-link" data-i18n="nav.awards">Awards</a>
+        <a href="#contact" class="navbar__link navbar__cta" data-i18n="nav.contact">Contact</a>
       </nav>
 
-      <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
-        <span></span>
-        <span></span>
-      </button>
+      <div class="navbar__actions">
+        <button
+          type="button"
+          class="lang-toggle"
+          id="lang-toggle"
+          data-lang="en"
+          aria-label="Switch language"
+        >
+          <span class="lang-toggle__thumb" aria-hidden="true"></span>
+          <span class="lang-toggle__opt" data-opt="en">EN</span>
+          <span class="lang-toggle__opt" data-opt="id">ID</span>
+        </button>
+
+        <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -86,6 +100,25 @@
     <div class="modal__dialog">
       <button class="modal__close" type="button" aria-label="Close modal" data-close-modal>&times;</button>
       <div class="modal__content" id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Shared Image Lightbox (Single & Multi-Photo Carousel) -->
+  <div class="modal lightbox" id="lightbox-modal" role="dialog" aria-modal="true" aria-label="Image preview" hidden>
+    <div class="modal__backdrop" data-close-lightbox></div>
+    <div class="lightbox__dialog" id="lightbox-dialog">
+      <button class="modal__close" type="button" aria-label="Close preview" data-close-lightbox>&times;</button>
+
+      <div class="lightbox__stage">
+        <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" type="button" aria-label="Previous image" hidden>&lsaquo;</button>
+        <img src="" alt="" class="lightbox__img" id="lightbox-img" />
+        <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" type="button" aria-label="Next image" hidden>&rsaquo;</button>
+      </div>
+
+      <div class="lightbox__meta">
+        <span class="lightbox__counter" id="lightbox-counter" hidden></span>
+        <p class="lightbox__caption" id="lightbox-caption"></p>
+      </div>
     </div>
   </div>
 

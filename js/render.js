@@ -7,6 +7,13 @@ function escapeHtml(str = "") {
     .replace(/'/g, "&#39;");
 }
 
+export function t(value, lang = "en") {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value[lang] ?? value.en ?? "";
+  }
+  return value ?? "";
+}
+
 function getInitials(name = "") {
   return name
     .trim()
@@ -16,25 +23,34 @@ function getInitials(name = "") {
     .join("");
 }
 
-function renderMetaAndBrand(profile) {
+function renderMetaAndNavbar(profile, ui, lang) {
+  document.documentElement.lang = lang;
   document.title = `${profile.fullName} — Portfolio`;
+
   const brandEl = document.getElementById("nav-brand");
   if (brandEl && profile.brandInitials) {
     brandEl.textContent = profile.brandInitials;
   }
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const keys = el.dataset.i18n.split(".");
+    const entry = keys.reduce((acc, k) => acc?.[k], ui);
+    if (entry) el.textContent = t(entry, lang);
+  });
 }
 
-function renderHero(profile) {
+function renderHero(profile, ui, lang) {
   const heroEl = document.getElementById("hero");
   if (!heroEl) return;
 
-  const statusHtml = profile.statusBadge
-    ? `<div class="hero__badge reveal" style="--reveal-delay: 40ms"><span class="hero__badge-dot" aria-hidden="true"></span><span>${escapeHtml(profile.statusBadge)}</span></div>`
+  const badgeText = t(profile.statusBadge, lang);
+  const statusHtml = badgeText
+    ? `<div class="hero__badge reveal" style="--reveal-delay: 40ms"><span class="hero__badge-dot" aria-hidden="true"></span><span>${escapeHtml(badgeText)}</span></div>`
     : "";
 
   const cvButtonHtml = profile.cvUrl
-    ? `<a href="${escapeHtml(profile.cvUrl)}" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">Download CV</a>`
-    : `<a href="#contact" class="btn btn--secondary">Get in Touch</a>`;
+    ? `<a href="${escapeHtml(profile.cvUrl)}" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">${escapeHtml(t(ui.hero.cvBtn, lang))}</a>`
+    : `<a href="#contact" class="btn btn--secondary">${escapeHtml(t(ui.hero.touchBtn, lang))}</a>`;
 
   heroEl.innerHTML = `
     <div class="container">
@@ -42,14 +58,14 @@ function renderHero(profile) {
         <div class="hero__orbit-glow" aria-hidden="true"></div>
         ${statusHtml}
         <h1 class="hero__title reveal" style="--reveal-delay: 120ms" translate="no">${escapeHtml(profile.fullName)}</h1>
-        <p class="hero__role reveal" style="--reveal-delay: 200ms">${escapeHtml(profile.role)}</p>
-        <p class="hero__tagline reveal" style="--reveal-delay: 280ms">${escapeHtml(profile.tagline)}</p>
+        <p class="hero__role reveal" style="--reveal-delay: 200ms">${escapeHtml(t(profile.role, lang))}</p>
+        <p class="hero__tagline reveal" style="--reveal-delay: 280ms">${escapeHtml(t(profile.tagline, lang))}</p>
         <div class="hero__actions reveal" style="--reveal-delay: 360ms">
-          <a href="#projects" class="btn btn--primary">Explore Projects</a>
+          <a href="#projects" class="btn btn--primary">${escapeHtml(t(ui.hero.exploreBtn, lang))}</a>
           ${cvButtonHtml}
         </div>
         <a href="#about" class="hero__scroll reveal" style="--reveal-delay: 460ms" aria-label="Scroll to about section">
-          <span>Scroll</span>
+          <span>${escapeHtml(t(ui.hero.scroll, lang))}</span>
           <span class="hero__scroll-line"></span>
         </a>
       </div>
@@ -57,11 +73,15 @@ function renderHero(profile) {
   `;
 }
 
-function renderAbout(profile, skills = []) {
+function renderAbout(profile, skills = {}, ui, lang) {
   const container = document.getElementById("about-container");
   if (!container) return;
 
-  const paragraphsHtml = (profile.about || [])
+  const aboutList = Array.isArray(profile.about)
+    ? profile.about
+    : profile.about?.[lang] || profile.about?.en || [];
+
+  const paragraphsHtml = aboutList
     .map((text) => `<p class="about__paragraph">${escapeHtml(text)}</p>`)
     .join("");
 
@@ -90,39 +110,58 @@ function renderAbout(profile, skills = []) {
       </div>
     `;
 
-  const skillsHtml = skills.length
-    ? `
-      <div class="skills__grid">
-        ${skills
-          .map(
-            (group, i) => `
-          <div class="card skill-card reveal" style="--reveal-delay: ${i * 90}ms">
-            <h3 class="skill-card__title">${escapeHtml(group.category)}</h3>
-            <ul class="tag-list">
-              ${(group.items || [])
-                .map((item) => `<li class="tag" translate="no">${escapeHtml(item)}</li>`)
-                .join("")}
-            </ul>
+  const buildPills = (items = []) =>
+    items
+      .map(
+        (item) => `
+        <li class="skill-pill" translate="no">
+          <img
+            src="${escapeHtml(item.icon)}"
+            alt="${escapeHtml(item.name)}"
+            class="skill-pill__icon${item.invert ? " skill-pill__icon--invert" : ""}"
+            loading="lazy"
+            onerror="this.style.display='none'"
+          />
+          <span class="skill-pill__name">${escapeHtml(item.name)}</span>
+        </li>`
+      )
+      .join("");
+
+  const buildRow = (items = [], direction) =>
+    items.length
+      ? `
+        <div class="marquee__row marquee__row--${direction}">
+          <div class="marquee__track">
+            <ul class="marquee__group">${buildPills(items)}</ul>
+            <ul class="marquee__group" aria-hidden="true">${buildPills(items)}</ul>
           </div>
-        `
-          )
-          .join("")}
+        </div>`
+      : "";
+
+  const hasOrbitalSkills = skills?.orbitTop?.length || skills?.orbitBottom?.length;
+  const skillsHtml = hasOrbitalSkills
+    ? `
+      <div class="skills__grid orbital-marquee reveal">
+        ${buildRow(skills.orbitTop, "left")}
+        ${buildRow(skills.orbitBottom, "right")}
       </div>
     `
     : "";
 
+  const locationText = t(profile.location, lang);
+
   container.innerHTML = `
     <div class="section__header reveal">
-      <span class="section__kicker">Overview</span>
-      <h2 class="section__title">A bit <em>about</em> me</h2>
+      <span class="section__kicker">${escapeHtml(t(ui.about.kicker, lang))}</span>
+      <h2 class="section__title">${t(ui.about.titleHtml, lang)}</h2>
     </div>
 
     <div class="about__grid reveal">
       <div class="card about__bio-card">
         <div>${paragraphsHtml}</div>
         ${
-          profile.location
-            ? `<div class="about__meta"><span class="about__meta-dot" aria-hidden="true"></span><span>Based in ${escapeHtml(profile.location)}</span></div>`
+          locationText
+            ? `<div class="about__meta"><span class="about__meta-dot" aria-hidden="true"></span><span>${escapeHtml(t(ui.about.basedIn, lang))} ${escapeHtml(locationText)}</span></div>`
             : ""
         }
       </div>
@@ -135,57 +174,94 @@ function renderAbout(profile, skills = []) {
   `;
 }
 
-function renderJourney(experience = [], education = []) {
+function renderJourney(experience = [], education = [], ui, lang, activeTab = "experience") {
   const container = document.getElementById("journey-container");
   if (!container) return;
+
+  const MAX_VISIBLE_THUMBS = 3;
+
+  const renderPhotos = (photos = [], expIdx) => {
+    if (!photos.length) return "";
+
+    const visible = photos.slice(0, MAX_VISIBLE_THUMBS);
+    const remaining = photos.length - MAX_VISIBLE_THUMBS;
+
+    return `
+      <div class="exp-gallery">
+        ${visible
+          .map((photo, photoIdx) => {
+            const src = typeof photo === "string" ? photo : photo.src;
+            const caption = typeof photo === "string" ? "" : t(photo.caption, lang);
+            const isOverflowTile = photoIdx === MAX_VISIBLE_THUMBS - 1 && remaining > 0;
+
+            return `
+              <button
+                type="button"
+                class="exp-thumb"
+                data-exp-index="${expIdx}"
+                data-photo-index="${photoIdx}"
+                aria-label="${escapeHtml(caption || `View photo ${photoIdx + 1} of ${photos.length}`)}"
+              >
+                <img src="${escapeHtml(src)}" alt="${escapeHtml(caption || "Experience documentation")}" loading="lazy" />
+                ${isOverflowTile ? `<span class="exp-thumb__more">+${remaining}</span>` : ""}
+              </button>
+            `;
+          })
+          .join("")}
+      </div>
+    `;
+  };
 
   const renderTimelineItems = (items, isEducation = false) =>
     items
       .map(
-        (item) => `
+        (item, idx) => `
       <div class="timeline__node">
         <article class="timeline__item card">
           <div class="timeline__header">
             <div>
-              <h3 class="timeline__title">${escapeHtml(isEducation ? item.degree : item.role)}</h3>
+              <h3 class="timeline__title">${escapeHtml(t(isEducation ? item.degree : item.role, lang))}</h3>
               <p class="timeline__org" translate="no">${escapeHtml(isEducation ? item.institution : item.organization)}</p>
             </div>
-            <span class="timeline__period">${escapeHtml(item.period)}</span>
+            <span class="timeline__period">${escapeHtml(t(item.period, lang))}</span>
           </div>
-          <p class="timeline__desc">${escapeHtml(item.description)}</p>
+          <p class="timeline__desc">${escapeHtml(t(item.description, lang))}</p>
+          ${!isEducation ? renderPhotos(item.photos, idx) : ""}
         </article>
       </div>
     `
       )
       .join("");
 
+  const isExp = activeTab === "experience";
+
   container.innerHTML = `
     <div class="section__header reveal">
-      <span class="section__kicker">Trajectory</span>
-      <h2 class="section__title">Experience & <em>Education</em></h2>
-      <p class="section__subtitle">Roles, student initiatives, and academic foundations shaping my work.</p>
+      <span class="section__kicker">${escapeHtml(t(ui.journey.kicker, lang))}</span>
+      <h2 class="section__title">${t(ui.journey.titleHtml, lang)}</h2>
+      <p class="section__subtitle">${escapeHtml(t(ui.journey.subtitle, lang))}</p>
     </div>
 
     <div class="tabs reveal" role="tablist" aria-label="Experience and Education">
-      <button class="tabs__btn is-active" type="button" role="tab" aria-selected="true" data-tab="experience">
-        Experience
+      <button class="tabs__btn ${isExp ? "is-active" : ""}" type="button" role="tab" aria-selected="${isExp}" data-tab="experience">
+        ${escapeHtml(t(ui.journey.tabExperience, lang))}
       </button>
-      <button class="tabs__btn" type="button" role="tab" aria-selected="false" data-tab="education">
-        Education
+      <button class="tabs__btn ${!isExp ? "is-active" : ""}" type="button" role="tab" aria-selected="${!isExp}" data-tab="education">
+        ${escapeHtml(t(ui.journey.tabEducation, lang))}
       </button>
     </div>
 
-    <div class="timeline reveal" data-tab-panel="experience">
+    <div class="timeline reveal" data-tab-panel="experience" ${isExp ? "" : "hidden"}>
       ${renderTimelineItems(experience, false)}
     </div>
 
-    <div class="timeline reveal" data-tab-panel="education" hidden>
+    <div class="timeline reveal" data-tab-panel="education" ${!isExp ? "" : "hidden"}>
       ${renderTimelineItems(education, true)}
     </div>
   `;
 }
 
-export function renderProjectCards(projects = [], activeCategory = "All") {
+export function renderProjectCards(projects = [], activeCategory = "All", ui, lang = "en") {
   const grid = document.getElementById("projects-grid");
   if (!grid) return;
 
@@ -195,7 +271,7 @@ export function renderProjectCards(projects = [], activeCategory = "All") {
       : projects.filter((p) => p.category === activeCategory);
 
   if (!filtered.length) {
-    grid.innerHTML = `<p class="empty-state">No projects found in this category yet.</p>`;
+    grid.innerHTML = `<p class="empty-state">${escapeHtml(t(ui.projects.empty, lang))}</p>`;
     return;
   }
 
@@ -238,11 +314,11 @@ export function renderProjectCards(projects = [], activeCategory = "All") {
               <span class="project-card__year">${escapeHtml(project.year)}</span>
             </div>
             <h3 class="project-card__title" translate="no">${escapeHtml(project.title)}</h3>
-            <p class="project-card__desc">${escapeHtml(project.shortDesc)}</p>
+            <p class="project-card__desc">${escapeHtml(t(project.shortDesc, lang))}</p>
             <ul class="tag-list">${stackHtml}</ul>
           </div>
           <div class="project-card__footer">
-            <span class="project-card__cta">Inspect Case Study &rarr;</span>
+            <span class="project-card__cta">${escapeHtml(t(ui.projects.inspectCta, lang))} &rarr;</span>
           </div>
         </article>
       `;
@@ -250,31 +326,32 @@ export function renderProjectCards(projects = [], activeCategory = "All") {
     .join("");
 }
 
-function renderProjectsSection(projects = []) {
+function renderProjectsSection(projects = [], ui, lang, activeCategory = "All") {
   const container = document.getElementById("projects-container");
   if (!container) return;
 
   const categories = ["All", ...new Set(projects.map((p) => p.category).filter(Boolean))];
 
   const filtersHtml = categories
-    .map(
-      (cat, idx) => `
-      <button
-        class="filter-btn ${idx === 0 ? "is-active" : ""}"
-        type="button"
-        data-filter="${escapeHtml(cat)}"
-      >
-        ${escapeHtml(cat)}
-      </button>
-    `
-    )
+    .map((cat) => {
+      const label = cat === "All" ? t(ui.projects.filterAll, lang) : cat;
+      return `
+        <button
+          class="filter-btn ${cat === activeCategory ? "is-active" : ""}"
+          type="button"
+          data-filter="${escapeHtml(cat)}"
+        >
+          ${escapeHtml(label)}
+        </button>
+      `;
+    })
     .join("");
 
   container.innerHTML = `
     <div class="section__header reveal">
-      <span class="section__kicker">Portfolio</span>
-      <h2 class="section__title">Selected <em>Work</em></h2>
-      <p class="section__subtitle">Click any project card to explore the architecture, role, and source repository.</p>
+      <span class="section__kicker">${escapeHtml(t(ui.projects.kicker, lang))}</span>
+      <h2 class="section__title">${t(ui.projects.titleHtml, lang)}</h2>
+      <p class="section__subtitle">${escapeHtml(t(ui.projects.subtitle, lang))}</p>
     </div>
 
     <div class="filter-bar reveal" role="group" aria-label="Filter projects by category">
@@ -284,10 +361,10 @@ function renderProjectsSection(projects = []) {
     <div class="projects__grid reveal" id="projects-grid"></div>
   `;
 
-  renderProjectCards(projects, "All");
+  renderProjectCards(projects, activeCategory, ui, lang);
 }
 
-export function renderProjectModal(project) {
+export function renderProjectModal(project, ui, lang = "en") {
   const modalContent = document.getElementById("modal-content");
   if (!modalContent || !project) return;
 
@@ -306,14 +383,16 @@ export function renderProjectModal(project) {
 
   const linksHtml = [
     project.githubUrl
-      ? `<a href="${escapeHtml(project.githubUrl)}" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">Source Code (GitHub)</a>`
+      ? `<a href="${escapeHtml(project.githubUrl)}" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">${escapeHtml(t(ui.projects.modalGithub, lang))}</a>`
       : "",
     project.liveUrl
-      ? `<a href="${escapeHtml(project.liveUrl)}" class="btn btn--primary" target="_blank" rel="noopener noreferrer">Live Demo &nearr;</a>`
+      ? `<a href="${escapeHtml(project.liveUrl)}" class="btn btn--primary" target="_blank" rel="noopener noreferrer">${escapeHtml(t(ui.projects.modalLive, lang))} &nearr;</a>`
       : ""
   ]
     .filter(Boolean)
     .join("");
+
+  const roleText = t(project.role, lang);
 
   modalContent.innerHTML = `
     ${mediaHtml}
@@ -322,11 +401,11 @@ export function renderProjectModal(project) {
       <span class="project-card__year">${escapeHtml(project.year)}</span>
     </div>
     <h3 class="modal__title" id="modal-title" translate="no">${escapeHtml(project.title)}</h3>
-    ${project.role ? `<p class="modal__role">Role: <strong>${escapeHtml(project.role)}</strong></p>` : ""}
-    <p class="modal__desc">${escapeHtml(project.fullDesc || project.shortDesc)}</p>
+    ${roleText ? `<p class="modal__role">${escapeHtml(t(ui.projects.modalRole, lang))}: <strong>${escapeHtml(roleText)}</strong></p>` : ""}
+    <p class="modal__desc">${escapeHtml(t(project.fullDesc || project.shortDesc, lang))}</p>
 
     <div class="modal__stack">
-      <h4 class="modal__label">Technologies Used</h4>
+      <h4 class="modal__label">${escapeHtml(t(ui.projects.modalStack, lang))}</h4>
       <ul class="tag-list">
         ${(project.techStack || [])
           .map((tech) => `<li class="tag" translate="no">${escapeHtml(tech)}</li>`)
@@ -338,44 +417,84 @@ export function renderProjectModal(project) {
   `;
 }
 
-function renderAchievements(achievements = []) {
+function renderAchievements(achievements = [], certifications = [], ui, lang, activeAwardTab = "awards") {
   const section = document.getElementById("achievements");
   const container = document.getElementById("achievements-container");
   const navLink = document.getElementById("nav-achievements-link");
   if (!section || !container) return;
 
-  if (!achievements.length) {
+  if (!achievements.length && !certifications.length) {
     section.classList.add("section--hidden");
     if (navLink) navLink.style.display = "none";
     return;
   }
 
+  const renderCards = (items) =>
+    items
+      .map((item, i) => {
+        const titleText = t(item.title, lang);
+        const actions = [
+          item.image
+            ? `<button type="button" class="credential-btn" data-lightbox-src="${escapeHtml(item.image)}" data-lightbox-caption="${escapeHtml(titleText)} — ${escapeHtml(item.issuer)}">${escapeHtml(t(ui.achievements.viewCert, lang))} &nearr;</button>`
+            : "",
+          item.credentialUrl
+            ? `<a href="${escapeHtml(item.credentialUrl)}" class="credential-btn" target="_blank" rel="noopener noreferrer">${escapeHtml(t(ui.achievements.verifyCert, lang))} &nearr;</a>`
+            : ""
+        ]
+          .filter(Boolean)
+          .join("");
+
+        return `
+          <article class="card achievement-card credential-card reveal" style="--reveal-delay: ${i * 80}ms">
+            <div class="achievement-card__top">
+              <span class="achievement-card__issuer" translate="no">${escapeHtml(item.issuer)}</span>
+              <span class="timeline__period">${escapeHtml(item.year)}</span>
+            </div>
+            <h3 class="achievement-card__title">${escapeHtml(titleText)}</h3>
+            <p class="achievement-card__desc">${escapeHtml(t(item.description, lang))}</p>
+            ${actions ? `<div class="credential-card__footer">${actions}</div>` : ""}
+          </article>
+        `;
+      })
+      .join("");
+
+  const hasBothTabs = achievements.length > 0 && certifications.length > 0;
+  const isAwards = activeAwardTab === "awards" || !certifications.length;
+
+  const tabsHtml = hasBothTabs
+    ? `
+      <div class="tabs reveal" role="tablist" aria-label="Awards and Certifications">
+        <button class="tabs__btn ${isAwards ? "is-active" : ""}" type="button" role="tab" aria-selected="${isAwards}" data-award-tab="awards">
+          ${escapeHtml(t(ui.achievements.tabAwards, lang))}
+        </button>
+        <button class="tabs__btn ${!isAwards ? "is-active" : ""}" type="button" role="tab" aria-selected="${!isAwards}" data-award-tab="certifications">
+          ${escapeHtml(t(ui.achievements.tabCertifications, lang))}
+        </button>
+      </div>
+    `
+    : "";
+
   container.innerHTML = `
     <div class="section__header reveal">
-      <span class="section__kicker">Recognition</span>
-      <h2 class="section__title">Milestones & <em>Awards</em></h2>
+      <span class="section__kicker">${escapeHtml(t(ui.achievements.kicker, lang))}</span>
+      <h2 class="section__title">${t(ui.achievements.titleHtml, lang)}</h2>
     </div>
 
-    <div class="achievements__grid">
-      ${achievements
-        .map(
-          (item, i) => `
-        <article class="card achievement-card reveal" style="--reveal-delay: ${i * 90}ms">
-          <div class="achievement-card__top">
-            <span class="achievement-card__issuer" translate="no">${escapeHtml(item.issuer)}</span>
-            <span class="timeline__period">${escapeHtml(item.year)}</span>
-          </div>
-          <h3 class="achievement-card__title">${escapeHtml(item.title)}</h3>
-          <p class="achievement-card__desc">${escapeHtml(item.description)}</p>
-        </article>
-      `
-        )
-        .join("")}
+    ${tabsHtml}
+
+    <div class="achievements__grid" data-award-panel="awards" ${isAwards ? "" : "hidden"}>
+      ${renderCards(achievements)}
     </div>
+
+    ${
+      certifications.length
+        ? `<div class="achievements__grid" data-award-panel="certifications" ${!isAwards ? "" : "hidden"}>${renderCards(certifications)}</div>`
+        : ""
+    }
   `;
 }
 
-function renderContact(profile, contact = {}) {
+function renderContact(profile, contact = {}, ui, lang) {
   const container = document.getElementById("contact-container");
   if (!container) return;
 
@@ -395,38 +514,38 @@ function renderContact(profile, contact = {}) {
     ? `
       <form class="card contact-form reveal" action="${escapeHtml(contact.formspreeEndpoint)}" method="POST">
         <div class="form-group">
-          <label for="contact-name">Name</label>
-          <input type="text" id="contact-name" name="name" placeholder="Your name" required />
+          <label for="contact-name">${escapeHtml(t(ui.contact.nameLabel, lang))}</label>
+          <input type="text" id="contact-name" name="name" placeholder="${escapeHtml(t(ui.contact.namePlaceholder, lang))}" required />
         </div>
         <div class="form-group">
           <label for="contact-email">Email</label>
           <input type="email" id="contact-email" name="email" placeholder="you@example.com" required />
         </div>
         <div class="form-group">
-          <label for="contact-message">Message</label>
-          <textarea id="contact-message" name="message" rows="4" placeholder="Tell me about your project or idea..." required></textarea>
+          <label for="contact-message">${escapeHtml(t(ui.contact.messageLabel, lang))}</label>
+          <textarea id="contact-message" name="message" rows="4" placeholder="${escapeHtml(t(ui.contact.messagePlaceholder, lang))}" required></textarea>
         </div>
-        <button type="submit" class="btn btn--primary btn--full">Send Message</button>
+        <button type="submit" class="btn btn--primary btn--full">${escapeHtml(t(ui.contact.sendBtn, lang))}</button>
       </form>
     `
     : "";
 
   container.innerHTML = `
     <div class="section__header ${hasForm ? "" : "section__header--center"} reveal">
-      <span class="section__kicker">Connect</span>
-      <h2 class="section__title">${escapeHtml(contact.heading || "Let's Work Together")}</h2>
-      <p class="section__subtitle">${escapeHtml(contact.subheading || "")}</p>
+      <span class="section__kicker">${escapeHtml(t(ui.contact.kicker, lang))}</span>
+      <h2 class="section__title">${escapeHtml(t(contact.heading, lang))}</h2>
+      <p class="section__subtitle">${escapeHtml(t(contact.subheading, lang))}</p>
     </div>
 
     <div class="contact__wrapper ${hasForm ? "" : "contact__wrapper--single"}">
       <div class="card contact-card reveal">
-        <span class="contact-card__label">Direct Email</span>
+        <span class="contact-card__label">${escapeHtml(t(ui.contact.directEmail, lang))}</span>
         <div class="contact-card__email-row">
           <a href="mailto:${escapeHtml(profile.email)}" class="contact-card__email" translate="no">
             ${escapeHtml(profile.email)}
           </a>
           <button type="button" class="btn btn--secondary btn--sm" id="copy-email-btn" data-email="${escapeHtml(profile.email)}">
-            Copy
+            ${escapeHtml(t(ui.contact.copy, lang))}
           </button>
         </div>
         ${socialsHtml ? `<div class="contact-card__socials">${socialsHtml}</div>` : ""}
@@ -436,7 +555,7 @@ function renderContact(profile, contact = {}) {
   `;
 }
 
-function renderFooter(profile) {
+function renderFooter(profile, ui, lang) {
   const footer = document.getElementById("footer");
   if (!footer) return;
 
@@ -444,18 +563,18 @@ function renderFooter(profile) {
   footer.innerHTML = `
     <div class="container footer__inner">
       <p class="footer__copy">&copy; ${year} <span translate="no">${escapeHtml(profile.fullName)}</span>.</p>
-      <a href="#hero" class="footer__top">Back to top &uarr;</a>
+      <a href="#hero" class="footer__top">${escapeHtml(t(ui.footer.backToTop, lang))} &uarr;</a>
     </div>
   `;
 }
 
-export function renderPortfolio(data) {
-  renderMetaAndBrand(data.profile);
-  renderHero(data.profile);
-  renderAbout(data.profile, data.skills);
-  renderJourney(data.experience, data.education);
-  renderProjectsSection(data.projects);
-  renderAchievements(data.achievements);
-  renderContact(data.profile, data.contact);
-  renderFooter(data.profile);
+export function renderPortfolio(data, lang = "en", state = {}) {
+  renderMetaAndNavbar(data.profile, data.ui, lang);
+  renderHero(data.profile, data.ui, lang);
+  renderAbout(data.profile, data.skills, data.ui, lang);
+  renderJourney(data.experience, data.education, data.ui, lang, state.activeTab);
+  renderProjectsSection(data.projects, data.ui, lang, state.activeCategory);
+  renderAchievements(data.achievements, data.certifications, data.ui, lang, state.activeAwardTab);
+  renderContact(data.profile, data.contact, data.ui, lang);
+  renderFooter(data.profile, data.ui, lang);
 }
