@@ -159,7 +159,7 @@ export const portfolioData = {
           caption: { en: "Team of Education Division", id: "Tim Divisi Edukasi" }
         },
         {
-          src: "assets/images/experiences/01-exp-3.jpg",
+          src: "assets/images/experiences/01-exp-3.JPG",
           caption: { en: "Coordinate Event Study Club 2026", id: "Mengoordinasikan Acara Study Club 2026" }
         }
       ]
