@@ -1,8 +1,5 @@
-/* =========================================================
-   DESIGN TOKENS — Revisi 1: Glossy Deep Space Blue
-   ========================================================= */
 :root {
-  /* Deep Space Palette (Diambil dari nuansa nebula biru gelap) */
+  /* Deep Space Palette*/
   --bg-void: #020614;
   --bg-deep-navy: #06122e;
   --bg-elevated: #081533;
@@ -66,7 +63,7 @@
   --transition-fast: 200ms var(--ease-out);
   --transition-base: 380ms var(--ease-out);
 
-  /* Correct Layering (Memperbaiki bug bintang tertutup!) */
+  /* Correct Layering */
   --z-nebula: 0;
   --z-stars: 1;
   --z-content: 2;

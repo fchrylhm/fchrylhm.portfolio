@@ -1,7 +1,3 @@
-/**
- * MAIN INTERACTION CONTROLLER — Revisi 1
- */
-
 import { portfolioData } from "./data.js";
 import { initStarfield } from "./starfield.js";
 import {
@@ -227,7 +223,7 @@ function initProjectTilt() {
   if (!grid) return;
 
   let activeCard = null;
-  const maxTilt = 2.8; // Derajat miring halus agar tetap elegan
+  const maxTilt = 2.8;
 
   const resetCard = (card) => {
     if (!card) return;

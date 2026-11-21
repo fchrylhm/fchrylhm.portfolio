@@ -1,9 +1,3 @@
-/**
- * PORTFOLIO RENDER ENGINE — Revisi 1
- * ---------------------------------------------------------
- * Tetap membaca struktur js/data.js yang sama tanpa perubahan data.
- */
-
 function escapeHtml(str = "") {
   return String(str)
     .replace(/&/g, "&amp;")

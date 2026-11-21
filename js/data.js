@@ -1,7 +1,7 @@
 export const portfolioData = {
   // 1. IDENTITAS & HERO SECTION
   profile: {
-    brandInitials: "fahri.", // Teks logo kecil di pojok kiri atas navbar
+    brandInitials: "fahri.",
     fullName: "Muhamad Fahri Ilham",
     greeting: "Hello, I'm",
     role: "Information Systems Student & Aspiring Engineer",
@@ -10,17 +10,17 @@ export const portfolioData = {
     statusBadge: "Open for Internships",
     location: "Bekasi, West Java, Indonesia",
     email: "muhamadfahriilham06@gmail.com",
-    cvUrl: "assets/docs/cv-muhamadfahriilham.pdf", // Contoh: "assets/docs/CV-Fahri.pdf" (Kosongkan jika belum ada file CV)
-    avatarUrl: "assets/images/mypp.jpg", // Contoh: "assets/images/profile.jpg" (Kosongkan dulu untuk fallback inisial rapi)
+    cvUrl: "assets/docs/cv-muhamadfahriilham.pdf",
+    avatarUrl: "assets/images/mypp.jpg",
     avatarAlt: "Portrait of Muhamad Fahri Ilham",
 
-    // Paragraf di bagian About Me (bisa tambah/kurangi item array)
+    // Paragraf di bagian About Me
     about: [
       "I'm an Information Systems undergraduate at Universitas Singaperbangsa Karawang with a strong interest in bridging software engineering and data-driven problem solving.",
       "Outside of coursework, I actively build full-stack web apps, experiment with machine learning pipelines, and coordinate educational initiatives within my student organization."
     ],
 
-    // Tautan sosial media (hapus atau kosongkan url jika tidak ingin ditampilkan)
+    // Tautan sosial media
     socials: [
       { label: "GitHub", url: "https://github.com/fchrylhm" },
       { label: "LinkedIn", url: "https://www.linkedin.com/in/muhamad-fahri-ilham/" },
@@ -28,7 +28,7 @@ export const portfolioData = {
     ]
   },
 
-  // 2. KEAHLIAN (Dikelompokkan agar bersih, tanpa progress bar persentase)
+  // 2. KEAHLIAN
   skills: [
     {
       category: "Full Stack Web Development",
@@ -73,7 +73,7 @@ export const portfolioData = {
     }
   ],
 
-  // 5. PROYEK & PORTOFOLIO (Kategori otomatis menjadi tombol filter!)
+  // 5. PROYEK & PORTOFOLIO
   projects: [
     {
       id: "moywoo",
@@ -122,7 +122,7 @@ export const portfolioData = {
     }
   ],
 
-  // 6. PRESTASI & SERTIFIKASI (Kosongkan array [] jika tidak ingin menampilkan section ini)
+  // 6. PRESTASI & SERTIFIKASI
   achievements: [
     {
       title: "1st Place Winner — Business Plan Competition (Veternity BERAKSI 2026)",
@@ -143,8 +143,6 @@ export const portfolioData = {
     heading: "Let's Build Something Useful",
     subheading:
       "Have a project idea, collaboration opportunity, or just want to talk tech? Feel free to reach out directly.",
-    // Opsional: Masukkan endpoint Formspree (misal "https://formspree.io/f/xxxxxx") jika ingin form pesan aktif.
-    // Jika dibiarkan kosong "", bagian form otomatis disembunyikan dan fokus pada tombol Salin Email & Sosial Media.
     formspreeEndpoint: ""
   }
 };

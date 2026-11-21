@@ -1,11 +1,5 @@
 /**
- * CINEMATIC DEEP SPACE STARFIELD v2
- * ---------------------------------------------------------
- * 4 Lapis Objek Langit:
- * 1. Galactic Micro-Dust (terkonsentrasi di pita diagonal Milky Way)
- * 2. Twinkling Field Stars (bintang latar multi-kedalaman & warna kosmik)
- * 3. 4-Point Sparkle Stars (bintang terang dengan kilau 4 sudut / diffraction spikes)
- * 4. Glowing Shooting Stars (bintang jatuh tajam sporadis)
+ * CINEMATIC DEEP SPACE STARFIELD (Optimized)
  */
 export function initStarfield() {
   const canvas = document.getElementById("starfield");
@@ -25,7 +19,6 @@ export function initStarfield() {
 
   const mouse = { targetX: 0, targetY: 0, x: 0, y: 0 };
 
-  // Distribusi lonceng sederhana (-0.5 s/d 0.5) agar debu bintang rapat di tengah jalur Milky Way
   function gaussianSpread() {
     return (Math.random() + Math.random() + Math.random()) / 3 - 0.5;
   }
@@ -33,10 +26,10 @@ export function initStarfield() {
   function createCelestialObjects() {
     const isMobile = width < 768;
 
-    // 1. Galactic Micro-Dust sepanjang jalur diagonal kiri-bawah -> kanan-atas
-    const dustCount = isMobile ? 115 : 250;
+    /* 1. Galactic Micro-Dust (Pita Diagonal Milky Way) */
+    const dustCount = isMobile ? 70 : 140;
     dustStars = Array.from({ length: dustCount }, () => {
-      const t = Math.random(); // posisi sepanjang diagonal (0 = kiri bawah, 1 = kanan atas)
+      const t = Math.random();
       const spread = gaussianSpread() * (isMobile ? height * 0.58 : height * 0.52);
       const x = t * width + spread * 0.45;
       const y = (1 - t) * height + spread;
@@ -53,8 +46,8 @@ export function initStarfield() {
       };
     });
 
-    // 2. Twinkling Field Stars tersebar di seluruh langit
-    const fieldCount = isMobile ? 65 : 135;
+    /* 2. Twinkling Field Stars */
+    const fieldCount = isMobile ? 50 : 95;
     const palette = ["255, 255, 255", "186, 230, 253", "147, 197, 253", "199, 210, 254"];
     fieldStars = Array.from({ length: fieldCount }, () => {
       const depth = Math.random();
@@ -73,8 +66,8 @@ export function initStarfield() {
       };
     });
 
-    // 3. 4-Point Sparkle Stars (Bintang Ikonik Berkilau 4 Sudut)
-    const sparkleCount = isMobile ? 5 : 10;
+    /* 3. 4-Point Sparkle Stars */
+    const sparkleCount = isMobile ? 4 : 8;
     sparkleStars = Array.from({ length: sparkleCount }, () => {
       const t = Math.random() * 0.9 + 0.05;
       const spread = gaussianSpread() * height * 0.65;
@@ -85,7 +78,7 @@ export function initStarfield() {
         x,
         y,
         depth: 0.75 + Math.random() * 0.25,
-        size: Math.random() * 5.5 + 5.5,
+        size: Math.random() * 5.2 + 5.2,
         baseAlpha: Math.random() * 0.25 + 0.65,
         pulseSpeed: Math.random() * 0.024 + 0.012,
         pulsePhase: Math.random() * Math.PI * 2,
@@ -108,45 +101,38 @@ export function initStarfield() {
     });
   }
 
+  /* Lightweight 4-Point Star tanpa alokasi RadialGradient per frame */
   function drawFourPointStar(x, y, size, alpha, color) {
-    // Halo glow lembut
-    const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 1.7);
-    glow.addColorStop(0, `rgba(${color}, ${alpha * 0.55})`);
-    glow.addColorStop(0.35, `rgba(96, 165, 250, ${alpha * 0.18})`);
-    glow.addColorStop(1, "rgba(59, 130, 246, 0)");
-
-    ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(x, y, size * 1.7, 0, Math.PI * 2);
+    ctx.arc(x, y, size * 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(96, 165, 250, ${alpha * 0.12})`;
     ctx.fill();
 
-    // Kilau 4 sudut tipis (diffraction spikes)
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = `rgba(${color}, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.65, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${color}, ${alpha * 0.28})`;
+    ctx.fill();
 
     const spike = size * 1.25;
     const thin = Math.max(0.75, size * 0.11);
 
     ctx.beginPath();
-    ctx.moveTo(0, -spike);
-    ctx.quadraticCurveTo(thin, -thin, spike, 0);
-    ctx.quadraticCurveTo(thin, thin, 0, spike);
-    ctx.quadraticCurveTo(-thin, thin, -spike, 0);
-    ctx.quadraticCurveTo(-thin, -thin, 0, -spike);
+    ctx.moveTo(x, y - spike);
+    ctx.quadraticCurveTo(x + thin, y - thin, x + spike, y);
+    ctx.quadraticCurveTo(x + thin, y + thin, x, y + spike);
+    ctx.quadraticCurveTo(x - thin, y + thin, x - spike, y);
+    ctx.quadraticCurveTo(x - thin, y - thin, x, y - spike);
     ctx.closePath();
+    ctx.fillStyle = `rgba(${color}, ${alpha})`;
     ctx.fill();
-    ctx.restore();
   }
 
   function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     width = window.innerWidth;
     height = window.innerHeight;
 
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    canvas.width = width;
+    canvas.height = height;
 
     createCelestialObjects();
     if (prefersReducedMotion) drawFrame(false);
@@ -161,7 +147,7 @@ export function initStarfield() {
       if (Math.random() < 0.003) spawnShootingStar();
     }
 
-    // 1. Render Galactic Micro-Dust
+    /* Render Micro-Dust */
     for (const d of dustStars) {
       if (animate) {
         d.y += d.driftY;
@@ -180,7 +166,7 @@ export function initStarfield() {
       ctx.fill();
     }
 
-    // 2. Render Twinkling Field Stars
+    /* Render Field Stars */
     for (const s of fieldStars) {
       if (animate) {
         s.y += s.driftY;
@@ -198,8 +184,8 @@ export function initStarfield() {
 
       if (s.isBright) {
         ctx.beginPath();
-        ctx.arc(px, py, s.radius * 3.4, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${s.color}, ${alpha * 0.14})`;
+        ctx.arc(px, py, s.radius * 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${s.color}, ${alpha * 0.13})`;
         ctx.fill();
       }
 
@@ -209,7 +195,7 @@ export function initStarfield() {
       ctx.fill();
     }
 
-    // 3. Render 4-Point Sparkle Stars
+    /* Render 4-Point Sparkle Stars */
     for (const sp of sparkleStars) {
       if (animate) {
         sp.y += sp.driftY;
@@ -227,7 +213,7 @@ export function initStarfield() {
       drawFourPointStar(px, py, sp.size * pulse, alpha, sp.color);
     }
 
-    // 4. Render Glowing Shooting Stars
+    /* Render Shooting Stars */
     if (animate && shootingStars.length) {
       for (let i = shootingStars.length - 1; i >= 0; i--) {
         const st = shootingStars[i];
@@ -253,7 +239,6 @@ export function initStarfield() {
         ctx.lineCap = "round";
         ctx.stroke();
 
-        // Titik kepala meteor terang
         ctx.beginPath();
         ctx.arc(st.x, st.y, 1.8, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;

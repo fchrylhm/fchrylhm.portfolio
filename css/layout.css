@@ -1,6 +1,3 @@
-/* =========================================================
-   LAYOUT & RESPONSIVE GRIDS
-   ========================================================= */
 .container {
   width: 100%;
   max-width: var(--container-max);
@@ -17,7 +14,7 @@
   display: none;
 }
 
-/* Editorial Section Header (Tanpa klise 01 / 02 / 03) */
+/* Editorial Section Header*/
 .section__header {
   margin-bottom: 3rem;
   max-width: 660px;
